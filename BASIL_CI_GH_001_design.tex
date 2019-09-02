@@ -1,0 +1,173 @@
+\documentclass{article}\usepackage[]{graphicx}\usepackage[]{color}
+% maxwidth is the original width if it is less than linewidth
+% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+
+\usepackage{geometry}
+
+\title{BASIL-CI-GH-001 - Design}
+\author{Bo Meyering}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+\maketitle
+\section{Objective and Design}
+The experimental design is a factorial CRBD with harvest time and ABA applications as the main factors. Objective is to explore the effects and interactions of spraying ABA and harvesting at different points in the photoperiod upon the tolerance to chilling injury (CI) in greenhouse grown sweet basil \emph{Ocimum basilicum} L. cv. 'DiGenova'. Treatments are assigned using the following code:
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{time} \hlkwb{<-} \hlkwd{rep}\hlstd{(}\hlkwd{c}\hlstd{(}\hlstr{"pre_dawn"}\hlstd{,} \hlstr{"10AM"}\hlstd{,} \hlstr{"3PM"}\hlstd{),} \hlkwc{each} \hlstd{=} \hlnum{2}\hlstd{)}
+\hlstd{spray} \hlkwb{<-} \hlkwd{rep}\hlstd{(}\hlkwd{c}\hlstd{(}\hlstr{"ABA_1500"}\hlstd{,} \hlstr{"UTC"}\hlstd{),} \hlkwc{times} \hlstd{=} \hlnum{3}\hlstd{)}
+\hlstd{treatment} \hlkwb{<-} \hlkwd{paste}\hlstd{(spray, time,} \hlkwc{sep} \hlstd{=} \hlstr{":"}\hlstd{)}
+\hlstd{treatment}
+\end{alltt}
+\begin{verbatim}
+## [1] "ABA_1500:pre_dawn" "UTC:pre_dawn"      "ABA_1500:10AM"    
+## [4] "UTC:10AM"          "ABA_1500:3PM"      "UTC:3PM"
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+Create randomized block design with treatments and 10 blocks. Assign plot IDs with "serie".
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(agricolae)}
+\hlstd{gh_design} \hlkwb{<-} \hlkwd{design.rcbd}\hlstd{(}\hlkwc{trt} \hlstd{= treatment,} \hlkwc{r} \hlstd{=} \hlnum{10}\hlstd{,} \hlkwc{serie} \hlstd{=} \hlnum{2}\hlstd{,} \hlkwc{seed} \hlstd{=} \hlnum{34}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+View the top few rows of the ID list
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{head}\hlstd{(gh_design}\hlopt{$}\hlstd{book)}
+\end{alltt}
+\begin{verbatim}
+##   plots block    spray harvest_time
+## 1  0101     1      UTC         10AM
+## 2  0102     1      UTC          3PM
+## 3  0103     1      UTC     pre_dawn
+## 4  0104     1 ABA_1500     pre_dawn
+## 5  0105     1 ABA_1500          3PM
+## 6  0106     1 ABA_1500         10AM
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+And then print bench map i.e. how the pots are arranged in blocks on the greenhouse benches
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{gh_design}\hlopt{$}\hlstd{sketch}
+\end{alltt}
+\begin{verbatim}
+##       [,1]                [,2]                [,3]           
+##  [1,] "UTC:10AM"          "UTC:3PM"           "UTC:pre_dawn" 
+##  [2,] "ABA_1500:10AM"     "UTC:3PM"           "ABA_1500:3PM" 
+##  [3,] "UTC:10AM"          "ABA_1500:pre_dawn" "ABA_1500:10AM"
+##  [4,] "UTC:10AM"          "ABA_1500:pre_dawn" "ABA_1500:10AM"
+##  [5,] "UTC:10AM"          "ABA_1500:pre_dawn" "ABA_1500:3PM" 
+##  [6,] "UTC:pre_dawn"      "ABA_1500:3PM"      "UTC:10AM"     
+##  [7,] "UTC:3PM"           "UTC:10AM"          "UTC:pre_dawn" 
+##  [8,] "ABA_1500:pre_dawn" "ABA_1500:10AM"     "UTC:3PM"      
+##  [9,] "UTC:pre_dawn"      "ABA_1500:3PM"      "ABA_1500:10AM"
+## [10,] "ABA_1500:10AM"     "ABA_1500:3PM"      "UTC:10AM"     
+##       [,4]                [,5]                [,6]               
+##  [1,] "ABA_1500:pre_dawn" "ABA_1500:3PM"      "ABA_1500:10AM"    
+##  [2,] "UTC:10AM"          "UTC:pre_dawn"      "ABA_1500:pre_dawn"
+##  [3,] "UTC:pre_dawn"      "UTC:3PM"           "ABA_1500:3PM"     
+##  [4,] "UTC:pre_dawn"      "UTC:3PM"           "ABA_1500:3PM"     
+##  [5,] "UTC:3PM"           "UTC:pre_dawn"      "ABA_1500:10AM"    
+##  [6,] "ABA_1500:pre_dawn" "UTC:3PM"           "ABA_1500:10AM"    
+##  [7,] "ABA_1500:3PM"      "ABA_1500:pre_dawn" "ABA_1500:10AM"    
+##  [8,] "UTC:10AM"          "ABA_1500:3PM"      "UTC:pre_dawn"     
+##  [9,] "ABA_1500:pre_dawn" "UTC:10AM"          "UTC:3PM"          
+## [10,] "UTC:pre_dawn"      "ABA_1500:pre_dawn" "UTC:3PM"
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+\section{Materials and Methods}
+\subsection{Plant Material}
+On 2019-07-12, 80 1gal injection molded pots (ProCal Industries) were sterilized with 1\% NaHClO solution and air dried. Pots were filled with pre-moistened BX ProMix potting media (BX Growing Solutions) and the media was sterilized with Oxidate 2.0 (BioSafe Systems) following labeled instructions. Sweet basil seeds (cv. 'Di Genova') were sown 6-9 to a pot in 3 holes. Pots were moved into a greenhouse and germinated at XX C average temperatures. Once all seedlings had 2 true leaves, seedlings were thinned to 3 per pot taking care not to damage the remaining seedlings. Once all seedlings had their first true leaves at 10 days after seeding (DAS), plants were fertilized 3X per week with liquid fertilizer solution at 100ppm N (Peter's Professional, 20-10-20). Seedlings were thinned to 3 plants per pot of uniform size on 2019-07-25. Plants were harvested on 2019-08-20 roughly 5 weeks after seeding (WAS)
+
+\subsection{ABA Treatments}
+On 2019-08-19, plants were either sprayed with s-ABA (Protone, Valent Biosciences, Libertyville, IL) at 1500mg/L or water only as an untreated control. Both treatments were sprayed with Tween-20 (Sigma Aldrich, St. Louis, MO) as a surfactant at 0.05\%. Spray volume per pot was approximately 50mL to get complete coverage. 
+
+\subsection{Harvest Times}
+One 2019-08-20, basil plants were harvested at three different times during the photoperiod to test if the accumulation of soluble carbohydrates in the leaves has an effect on chilling injury tolerance. Plants were harvested 5:00am (pre-dawn), 10:00am, and 3:00pm.
+
+\subsection{Postharvest Handling}
+At each harvest time, potted plants were immediately transported to the laboratory and packaged indoors. We ensured that plants from the 5:00am harvest time received the minimum amount of light as feasible. We used clear, plastic (PETE) herb clamshells (8.4cm X 15.4cm X 4.2cm, www.easypak.net). Four leaves for CI symptom ratings were selected from the uppermost two nodes with mature, fully expanded leaves. A small section of the node was left intact to keep the leaves together. These were packaged in the clamshells. Leaves for weighing and respiration measurements were selected in the same manner from a second plant in each pot. We selected a third set of four leaves including the internode from the third plant for T0 (baseline) measurements of carbohydrates and malondialdehyde (MDA). These were placed in aluminum foil packets, flash frozen in liquid nitrogen, and stored at -80C. Two leaves for for T0 leaf electrolyte leakage (LEL) were selected from the third uppermost node from one plant, and two leaves for T1 (endpoint) LEL were selected in the same manner and placed in a clamshell. All leaves packaged in clamshells were placed inside a environmental growth chamber (PGR-15, Conviron) set to 4C with no lighting. 
+
+\subsection{Leaf Electrolyte Leakage}
+Using a no.5 cork borer, we collected 4 leaf disks from the two leaves selected for LEL measurements. Leaf disks were selected from the areas in between the main leaf veins. Leaf disks were placed inside glass vials filled with 25mL RO water of a known conductivity (EC0). We placed the vials on a rotary shaker for 24hr and set the shaker to a gentle shaking action. After incubation, we measured the conductivity again (EC1). Vials with leaf disks were autoclaved at 110C for 15min, cooled, and then measured a final time (EC2). LEL was expressed as a percentage calculating in the following way:
+\[
+        \frac{(EC1-EC0)}{(EC2-EC0)}100
+\]
+\subsection{Leaf Fresh Weight and Respiration Rate}
+Before being packaged, leaves were weighed immediately after harvesting before being packed in clamshells. Leaves were weighed again on day 3, 6, and 9 to measure the percent weight loss. To measure cellular respiration rates, we constructed a closed loop respiration chamber, consisting of an airtight container (Pelican 1010 Micro Case, Pelican Products, Torrance, CA) of similar dimensions as the clamshell. The respiration chamber was ported on either end with quick connect fittings to allow connection to a CO2 gas analyzer (LI-850, Licor, ND). Four leaves were placed inside the respiration chamber and once CO2 measurements stabilized, linear data was collected over a 20 minute period in the dark at 4C. The respiration rate was expressed as relative to the fresh weight of the tissue on the day of measurement.
+
+\subsection{CI Symptom Ratings}
+Ratings of CI symptoms were conducted on 4 leaves per replicate according to the scale presented in Satpute \emph{et. al}, 2019.
+
+\subsection{Leaf Carbohydrates}
+Major soluble carbohydrates and starch in the leaves were quantified spectrophotometrically after enzymatic reactions measuring the evolution of NADH at XXXnm. Flash frozen leaf tissue, excluding petioles, was ground to a fine powder under liquid nitrogen. Soluble carbohydrates were extracted in 2 aliquots of 80\% ethanol (Sigma Aldrich, St. Louis, MO), filtered with a .2um spin filter (Costar, Corning) and dried to a solid in a vacuum equipped centrifuge (Vacufuge, Eppendorf, Germany). Undiluted extract was used in a reaction with ......
+Carbohydrates were quantified against a standard curves of reagent grade glucose, fructose, and sucrose (Sigma Aldrich, St. Louis, MO) and expressed as ug/mg tissue fresh weight.
+
+\subsection{Malondialdehyde Assay}
+Malondialdehyde was extracted and quantified according to the methods of.....
+
+\subsection{Data Analysis}
+Data for respiration rates were analzyed by linear regression models in the RStudio environment (RStudio Team). All other data were analyzed by two-way ANOVA, means from significant tests were separated by Tukey's HSD \emph{post hoc} test.
+
+\section{Analysis Methods, Procedures, and Code}
+
+\end{document}
